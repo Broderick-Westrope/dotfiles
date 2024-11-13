@@ -1,0 +1,37 @@
+export PATH="/opt/homebrew/opt/openssl/bin:$PATH"
+export PATH="$HOME/scripts:$PATH"
+export HOMEBREW_CASK_OPTS="--appdir=~/Applications"
+
+export EDITOR="code"
+export APIS_DIR="$HOME/dev/projects/anz/apis"
+
+# Aliases
+alias cls="clear"
+alias lg="lazygit"
+alias ld="lazydocker"
+alias ez="eza -1 --icons=auto --color=auto"
+alias pn="pnpm"
+
+function mkz() {
+    mkdir $1
+    z $1
+}
+
+autoload -U up-line-or-beginning-search
+autoload -U down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey "^[[A" up-line-or-beginning-search # Up
+bindkey "^[[B" down-line-or-beginning-search # Down
+
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=* l:|=*'
+
+eval "$(starship init zsh)"
+eval "$(direnv hook zsh)"
+eval "$(zoxide init zsh)"
+eval "$(mise activate zsh)"
+
+# Completions
+autoload -Uz compinit && compinit
+source <(fzf --zsh)
+source <(mise completion zsh)
