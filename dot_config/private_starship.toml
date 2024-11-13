@@ -1,0 +1,37 @@
+# Get editor completions based on the config schema
+#! This may cause issues with Warp terminal. Remove if issues occur!
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Inserts a blank line between shell prompts
+add_newline = true
+
+# Disable the package module, hiding it from the prompt completely
+[package]
+disabled = true
+
+
+[nodejs]
+format = "[$symbol($version )]($style)"
+
+[directory]
+read_only = " "
+truncation_symbol = ".../"
+
+
+[character]
+success_symbol = "[❯](bold purple)"
+error_symbol = "[❯](red)"
+vicmd_symbol = "[❮](green)"
+
+[git_branch]
+symbol = " "
+format = "[$symbol$branch]($style) "
+
+[cmd_duration]
+format = "[$duration]($style)"
+style = "yellow"
+
+[time]
+disabled = false
+style = "bold white"
+format = "[$time]($style)"
