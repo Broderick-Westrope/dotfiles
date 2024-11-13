@@ -39,6 +39,8 @@
       - spotify
       - visual-studio-code
       - wezterm
+      # custom casks
+      - ./custom_casks/cleanmymac.rb
 
   pre_tasks:
     - name: Check Homebrew installation (Intel)
@@ -46,12 +48,12 @@
         path: /usr/local/bin/brew
       register: homebrew_check_intel
 
-    - name: Determine Homebrew installation (Apple Silicon)
+    - name: Check Homebrew installation (Apple Silicon)
       stat:
         path: /opt/homebrew/bin/brew
       register: homebrew_check_apple
 
-    - name: Set Homebrew prefix (pre-install)
+    - name: Set Homebrew prefix
       set_fact:
         homebrew_prefix: >-
           {% if homebrew_check_intel.stat.exists %}
@@ -62,34 +64,9 @@
             None
           {% endif %}
 
-    - name: Install Homebrew (Intel)
-      shell: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      args:
-        creates: /usr/local/bin/brew
-      when:
-        - homebrew_prefix == 'None'
-        - ansible_architecture == 'x86_64'
-      become: true  # May require admin privileges
-
-    - name: Install Homebrew (Apple Silicon)
-      shell: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      args:
-        creates: /opt/homebrew/bin/brew
-      environment:
-        NONINTERACTIVE: '1'
-      when:
-        - homebrew_prefix == 'None'
-        - ansible_architecture in ['arm64', 'aarch64']
-      become: true  # May require admin privileges
-
-    - name: Set Homebrew prefix (post-install)
-      set_fact:
-        homebrew_prefix: >-
-          {% if ansible_architecture == 'x86_64' %}
-            /usr/local
-          {% else %}
-            /opt/homebrew
-          {% endif %}
+    - name: Require Homebrew installation
+      fail:
+        msg: Requires Homebrew to be installed
       when: homebrew_prefix == 'None'
 
     - name: Update PATH for Ansible execution

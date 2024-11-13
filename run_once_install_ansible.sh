@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# install Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Ansible
 OS="$(uname -s)"
 case "${OS}" in
 Darwin*)
@@ -12,6 +16,6 @@ Darwin*)
     exit 1
     ;;
 esac
+echo "Ansible installation complete. Running setup..."
 
-ansible-playbook ~/.bootstrap/setup.ansible.yml --ask-become-pass
-echo "Ansible installation complete."
+# ansible-playbook ~/.bootstrap/setup.ansible.yml --ask-become-pass
