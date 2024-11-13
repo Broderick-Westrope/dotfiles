@@ -11,6 +11,7 @@ alias lg="lazygit"
 alias ld="lazydocker"
 alias ez="eza -1 --icons=auto --color=auto"
 alias pn="pnpm"
+alias chz="chezmoi"
 
 function mkz() {
     mkdir $1
