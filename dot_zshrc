@@ -4,6 +4,7 @@ export HOMEBREW_CASK_OPTS="--appdir=~/Applications"
 
 export EDITOR="code"
 export APIS_DIR="$HOME/dev/projects/anz/apis"
+export GIT_CONFIG_GLOBAL="$HOME/.config/git/config"
 
 # Aliases
 alias cls="clear"
@@ -22,7 +23,7 @@ autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
-bindkey "^[[A" up-line-or-beginning-search # Up
+bindkey "^[[A" up-line-or-beginning-search   # Up
 bindkey "^[[B" down-line-or-beginning-search # Down
 
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=* l:|=*'

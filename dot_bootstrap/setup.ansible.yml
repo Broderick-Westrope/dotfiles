@@ -1,0 +1,130 @@
+---
+- name: Machine setup for MacOS
+  hosts: localhost
+  become: false
+  connection: local
+  gather_facts: true
+  vars:
+    brew_formulae:
+      - ansible
+      - bat
+      - chezmoi
+      - direnv
+      - eza
+      - fzf
+      - gh
+      - jq
+      - lazydocker
+      - lazygit
+      - mise
+      - pnpm
+      - rm-improved
+      - starship
+      - zoxide
+    brew_casks:
+      - alt-tab
+      - arc
+      - cryptomator
+      - discord
+      - font-fira-code-nerd-font
+      - fuse-t
+      - fuse-t-sshfs
+      - goland
+      - hyperkey
+      - mimestream
+      - obsidian
+      - raycast
+      - rectangle
+      - rider
+      - spotify
+      - visual-studio-code
+      - wezterm
+
+  pre_tasks:
+    - name: Check Homebrew installation (Intel)
+      stat:
+        path: /usr/local/bin/brew
+      register: homebrew_check_intel
+
+    - name: Determine Homebrew installation (Apple Silicon)
+      stat:
+        path: /opt/homebrew/bin/brew
+      register: homebrew_check_apple
+
+    - name: Set Homebrew prefix (pre-install)
+      set_fact:
+        homebrew_prefix: >-
+          {% if homebrew_check_intel.stat.exists %}
+            /usr/local
+          {% elif homebrew_check_apple.stat.exists %}
+            /opt/homebrew
+          {% else %}
+            None
+          {% endif %}
+
+    - name: Install Homebrew (Intel)
+      shell: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      args:
+        creates: /usr/local/bin/brew
+      when:
+        - homebrew_prefix == 'None'
+        - ansible_architecture == 'x86_64'
+      become: true  # May require admin privileges
+
+    - name: Install Homebrew (Apple Silicon)
+      shell: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      args:
+        creates: /opt/homebrew/bin/brew
+      environment:
+        NONINTERACTIVE: '1'
+      when:
+        - homebrew_prefix == 'None'
+        - ansible_architecture in ['arm64', 'aarch64']
+      become: true  # May require admin privileges
+
+    - name: Set Homebrew prefix (post-install)
+      set_fact:
+        homebrew_prefix: >-
+          {% if ansible_architecture == 'x86_64' %}
+            /usr/local
+          {% else %}
+            /opt/homebrew
+          {% endif %}
+      when: homebrew_prefix == 'None'
+
+    - name: Update PATH for Ansible execution
+      ansible.builtin.set_fact:
+        ansible_env:
+          PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
+
+  tasks:
+    - name: Update Homebrew
+      homebrew:
+        update_homebrew: true
+      environment:
+        PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
+      when: homebrew_prefix != 'None'
+
+    - name: Upgrade Homebrew packages
+      homebrew:
+        upgrade_all: true
+      environment:
+        PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
+      when:
+        - homebrew_prefix != 'None'
+
+    - name: Install Homebrew formulae
+      homebrew:
+        name: "{{ brew_formulae }}"
+        state: present
+      environment:
+        PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
+      when: homebrew_prefix != 'None'
+
+    - name: Install Homebrew casks
+      homebrew_cask:
+        name: "{{ brew_casks }}"
+        state: present
+      environment:
+        PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
+      when: homebrew_prefix != 'None'
