@@ -21,6 +21,7 @@
       - pnpm
       - rm-improved
       - starship
+      - walk
       - zoxide
     brew_casks:
       - alt-tab

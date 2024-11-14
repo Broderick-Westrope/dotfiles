@@ -15,8 +15,12 @@ alias pn="pnpm"
 alias chz="chezmoi"
 
 function mkz() {
-    mkdir $1
-    z $1
+    mkdir "$1"
+    z "$1"
+}
+
+function lk {
+    cd "$(walk "$@")" || exit
 }
 
 autoload -U up-line-or-beginning-search
