@@ -6,21 +6,32 @@
   gather_facts: true
   vars:
     brew_formulae:
+      - act
       - ansible
       - bat
+      - buf
       - chezmoi
       - direnv
+      - docker
+      - docker-compose
       - eza
       - fzf
       - gh
+      - go-task
+      - golangci-lint
+      - grpc
+      - grpcui
+      - grpcurl
       - jq
       - lazydocker
       - lazygit
+      - luarocks
       - mise
       - neovim
       - pnpm
       - rm-improved
       - starship
+      - tldr
       - walk
       - zoxide
     brew_casks:
@@ -35,6 +46,8 @@
       - goland
       - hyperkey
       - mimestream
+      - monitorcontrol
+      - notion-calendar
       - obsidian
       - orbstack
       - raycast
