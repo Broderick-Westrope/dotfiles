@@ -17,6 +17,7 @@
       - lazydocker
       - lazygit
       - mise
+      - neovim
       - pnpm
       - rm-improved
       - starship
@@ -24,6 +25,7 @@
     brew_casks:
       - alt-tab
       - arc
+      - cleanshot
       - cryptomator
       - discord
       - font-fira-code-nerd-font
