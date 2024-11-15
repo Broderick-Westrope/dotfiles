@@ -50,11 +50,14 @@
       - notion-calendar
       - obsidian
       - orbstack
+      - protonvpn
+      - qbittorrent
       - raycast
       - rectangle
       - rider
       - spotify
       - visual-studio-code
+      - vlc
       - wezterm
       # custom casks
       - ./custom_casks/cleanmymac.rb
