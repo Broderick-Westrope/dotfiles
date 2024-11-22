@@ -17,6 +17,7 @@
       - eza
       - fzf
       - gh
+      - gnupg
       - go-task
       - golangci-lint
       - grpc
@@ -40,10 +41,12 @@
       - cleanshot
       - cryptomator
       - discord
+      - firefox
       - font-fira-code-nerd-font
       - fuse-t
       - fuse-t-sshfs
       - goland
+      - gpg-suite
       - hyperkey
       - mimestream
       - monitorcontrol
@@ -56,6 +59,7 @@
       - rectangle
       - rider
       - spotify
+      - tor-browser
       - visual-studio-code
       - vlc
       - wezterm
