@@ -1,0 +1,19 @@
+{
+    "workbench.iconTheme": "catppuccin-mocha",
+    "workbench.colorTheme": "Catppuccin Mocha",
+    "workbench.sideBar.location": "right",
+    "workbench.settings.applyToAllProfiles": [
+        "workbench.sideBar.location",
+        "editor.fontFamily",
+        "editor.fontSize",
+        "editor.formatOnSave",
+        "window.zoomLevel",
+        "editor.fontLigatures",
+    ],
+    "editor.fontLigatures": true,
+    "editor.formatOnSave": true,
+    "editor.fontFamily": "FiraCode Nerd Font Mono",
+    "editor.fontSize": 15,
+    "window.zoomLevel": 1.5,
+    "svelte.enable-ts-plugin": true,
+}
