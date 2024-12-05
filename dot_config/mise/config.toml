@@ -1,2 +1,7 @@
 [tools]
 go = "1.23"
+tinytex = "latest"
+node = "latest"
+
+[settings]
+experimental = true
