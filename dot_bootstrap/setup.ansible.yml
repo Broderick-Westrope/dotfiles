@@ -38,6 +38,8 @@
     brew_casks:
       - alt-tab
       - arc
+      - beekeeper-studio
+      - bruno
       - cleanshot
       - cryptomator
       - discord
