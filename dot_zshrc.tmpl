@@ -11,9 +11,11 @@ export EDITOR="code"
 export HOMEBREW_CASK_OPTS="--appdir=~/Applications"
 export GIT_CONFIG_GLOBAL="$HOME/.config/git/config"
 
+{{- if lookPath "go" }}
 # Go
 export GOPATH="$MISE_DIR/shims"
 export GOROOT="$(go env GOROOT)"
+{{- end }}
 
 # Aliases
 alias cls="clear"

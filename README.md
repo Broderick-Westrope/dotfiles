@@ -1,24 +1,64 @@
 # dotfiles
 
-This repo contains the configuration to setup my machines. This is using [Chezmoi](https://chezmoi.io), the dotfile manager to setup the install. It was inspired by Logan Donleys [setup](https://github.com/logandonley/dotfiles).
+This repo contains the configuration to setup my machines using [Chezmoi](https://chezmoi.io), a modern dotfile manager.
 
-***NOTE: Only MacOS is supported for automated setup.***
+***NOTE: Only macOS is supported for automated setup.***
 
-## How to run
+## Quick Setup (New Machine)
 
 ```shell
 export GITHUB_USERNAME=Broderick-Westrope
+# Optional: Set your email for git configuration
+export GIT_EMAIL=your-email@example.com
+
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
 ```
 
-## Adding new Brew packages
+This will:
+1. Install chezmoi
+2. Clone this repository
+3. Install Homebrew (if not present)
+4. Install all packages defined in `.chezmoidata.yaml`
+5. Apply all dotfile configurations
+6. Set up shell environment
 
-Brew packages are added in [setup.ansible.yml](./dot_bootstrap/setup.ansible.yml). The following are some utility commands for getting the currently installed packages.
+## Managing Packages
+
+Packages are managed in [`.chezmoidata.yaml`](./.chezmoidata.yaml). To add new packages:
+
+1. Edit the file directly, or
+2. Install packages manually and use these commands to see what's installed:
 
 ```shell
-brew list --installed-on-request --formulae >> formulae.txt
+# List formulae (CLI tools)
+brew list --installed-on-request --formulae
 
-brew list --casks >> casks.txt
+# List casks (GUI applications)  
+brew list --casks
 ```
 
-This way new packages can be installed on the current machine and then these commands can be run to see what should be included in the setup file. It will omit dependencies and alphabetise the list for you.
+## Common Commands
+
+```shell
+# Apply changes after editing dotfiles
+chezmoi apply
+
+# See what would change
+chezmoi diff
+
+# Edit a managed file
+chezmoi edit ~/.zshrc
+
+# Add a new file to be managed
+chezmoi add ~/.new-config
+
+# Update from repository
+chezmoi update
+```
+
+## What's Included
+
+- **Shell**: zsh with starship prompt, zoxide, fzf integration
+- **Development**: mise for tool management, lazygit, lazydocker
+- **Applications**: Arc browser, VS Code, various productivity apps
+- **Terminal**: WezTerm with custom configuration

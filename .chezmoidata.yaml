@@ -1,0 +1,65 @@
+brew:
+  formulae:
+    - act
+    - bat
+    - buf
+    - chezmoi
+    - direnv
+    - docker
+    - docker-compose
+    - eza
+    - fzf
+    - gh
+    - gnupg
+    - go-task
+    - golangci-lint
+    - grpc
+    - grpcui
+    - grpcurl
+    - jq
+    - lazydocker
+    - lazygit
+    - luarocks
+    - mise
+    - neovim
+    - pnpm
+    - rm-improved
+    - starship
+    - tldr
+    - walk
+    - zoxide
+
+  casks:
+    - alt-tab
+    - arc
+    - beekeeper-studio
+    - bruno
+    - cleanshot
+    - cryptomator
+    - discord
+    - firefox
+    - font-fira-code-nerd-font
+    - fuse-t
+    - fuse-t-sshfs
+    - goland
+    - gpg-suite
+    - hyperkey
+    - mimestream
+    - monitorcontrol
+    - notion-calendar
+    - obsidian
+    - orbstack
+    - protonvpn
+    - qbittorrent
+    - raycast
+    - rectangle
+    - rider
+    - spotify
+    - tor-browser
+    - visual-studio-code
+    - vlc
+    - wezterm
+
+system:
+  is_macos: true
+  is_personal: true

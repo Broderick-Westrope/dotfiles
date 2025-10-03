@@ -1,0 +1,45 @@
+#!/bin/bash
+
+{{- if .system.is_macos }}
+
+set -euo pipefail
+
+echo "📦 Installing packages..."
+
+# Ensure Homebrew is in PATH
+if [[ -f "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -f "/usr/local/bin/brew" ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# Update Homebrew
+echo "🔄 Updating Homebrew..."
+brew update
+
+# Install formulae
+echo "🔧 Installing Homebrew formulae..."
+brew install \
+{{- range .brew.formulae }}
+    {{ . | quote }} \
+{{- end }}
+
+# Install casks
+echo "📱 Installing Homebrew casks..."
+brew install --cask \
+{{- range .brew.casks }}
+    {{ . | quote }} \
+{{- end }}
+
+# Clean up
+echo "🧹 Cleaning up..."
+brew cleanup
+
+echo "✅ Package installation complete"
+
+{{- else }}
+
+echo "❌ This script only supports macOS"
+exit 1
+
+{{- end }}

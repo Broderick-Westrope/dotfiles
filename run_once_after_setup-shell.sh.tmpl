@@ -1,0 +1,28 @@
+#!/bin/bash
+
+{{- if .system.is_macos }}
+
+set -euo pipefail
+
+echo "🐚 Setting up shell environment..."
+
+# Set zsh as default shell if not already
+if [[ "$SHELL" != */zsh ]]; then
+    echo "Setting zsh as default shell..."
+    chsh -s $(which zsh)
+fi
+
+# Initialize mise if not already done
+if [[ -d "$HOME/.local/share/mise" ]] && command -v mise &>/dev/null; then
+    echo "Installing mise tools..."
+    mise install
+fi
+
+echo "✅ Shell setup complete"
+
+{{- else }}
+
+echo "❌ This script only supports macOS"
+exit 1
+
+{{- end }}
