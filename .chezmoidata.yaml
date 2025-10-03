@@ -41,6 +41,7 @@ brew:
     - font-fira-code-nerd-font
     - fuse-t
     - fuse-t-sshfs
+    - ghostty
     - goland
     - gpg-suite
     - hyperkey
@@ -58,7 +59,6 @@ brew:
     - tor-browser
     - visual-studio-code
     - vlc
-    - wezterm
 
 system:
   is_macos: true

@@ -61,4 +61,4 @@ chezmoi update
 - **Shell**: zsh with starship prompt, zoxide, fzf integration
 - **Development**: mise for tool management, lazygit, lazydocker
 - **Applications**: Arc browser, VS Code, various productivity apps
-- **Terminal**: WezTerm with custom configuration
+- **Terminal**: Ghostty with custom configuration
