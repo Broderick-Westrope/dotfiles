@@ -1,0 +1,21 @@
+{{- /* This is the chezmoi configuration file template */ -}}
+{{- /* It dynamically sets the source directory based on the user's home directory */ -}}
+
+sourceDir = "{{ .chezmoi.homeDir }}/dev/home/dotfiles"
+
+{{- /* Optional: Add other configuration options */ -}}
+{{- if .system.is_macos }}
+# macOS-specific settings
+[cd]
+command = "code"
+
+[edit]
+command = "code"
+{{- end }}
+
+# Enable verbose output for debugging (optional)
+# verbose = true
+
+# Auto-apply changes after editing (optional)
+[edit]
+apply = true
