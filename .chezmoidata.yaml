@@ -1,10 +1,11 @@
 brew:
   formulae:
     - act
+    - amalgo
     - bat
     - buf
     - chezmoi
-    - direnv
+    - cloc
     - docker
     - docker-compose
     - eza
@@ -28,12 +29,14 @@ brew:
     - tldr
     - walk
     - zoxide
+    - zsh-autosuggestions
 
   casks:
     - alt-tab
     - arc
     - beekeeper-studio
     - bruno
+    - claude-code
     - cleanshot
     - cryptomator
     - discord
@@ -42,7 +45,6 @@ brew:
     - fuse-t
     - fuse-t-sshfs
     - ghostty
-    - goland
     - gpg-suite
     - hyperkey
     - mimestream
@@ -54,11 +56,11 @@ brew:
     - qbittorrent
     - raycast
     - rectangle
-    - rider
     - spotify
     - tor-browser
     - visual-studio-code
     - vlc
+    - wireshark
 
 system:
   is_macos: true
