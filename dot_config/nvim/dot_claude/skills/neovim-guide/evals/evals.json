@@ -1,0 +1,23 @@
+{
+  "skill_name": "neovim-guide",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "how do I select a word and replace it with something else in neovim",
+      "expected_output": "Explains ciw or similar with grammar breakdown (operator + text object), mentions related commands",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I want relative line numbers in neovim, how do I set that up",
+      "expected_output": "Guides user to edit lua/config/options.lua with vim.opt.relativenumber = true, explains what it does, does NOT edit the file directly",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "can I practice deleting and changing text? give me some exercises",
+      "expected_output": "Provides concrete exercises with starting text, goals, and spoilered answers with grammar explanations",
+      "files": []
+    }
+  ]
+}
