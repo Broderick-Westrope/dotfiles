@@ -1,0 +1,19 @@
+{
+  "name": "anvil-night",
+  "displayName": "Anvil Night",
+  "description": "TokyoNight Night on a #050014 background, matching Anvil and Ghostty.",
+  "version": "0.1.0",
+  "publisher": "broderick-westrope",
+  "license": "MIT",
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Themes"],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Anvil Night",
+        "uiTheme": "vs-dark",
+        "path": "./themes/anvil-night-color-theme.json"
+      }
+    ]
+  }
+}
