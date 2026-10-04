@@ -84,10 +84,31 @@ No secrets live in this repo or in plain text on disk. Keys are stored in 1Passw
 - **git:** `~/.config/git/config` includes `~/.gitconfig-helse` for anything under `~/dev/helse/`, which switches to the personal email, signing key and SSH host. Linked worktrees inherit it because their git dir lives in the main repo.
 - **gh:** `~/.local/bin/gh` wraps the real `gh` and sets `GH_TOKEN` per call: `Broderick-Westrope` for repos under `~/dev/helse/` (or `--repo Broderick-Westrope/...`), `brodie-euc` otherwise. Override with `GH_ACCOUNT=<login>`.
 
+## Cursor
+
+**Theme.** Anvil Night lives in [`cursor/anvil-night/`](./cursor/anvil-night/). It's a plain VS Code colour theme that chezmoi never copies into `$HOME`. To change it:
+
+1. Edit `themes/anvil-night-color-theme.json` directly.
+2. Bump `version` in `package.json`.
+3. Run `chezmoi apply`, then reload Cursor windows (`Developer: Reload Window`).
+
+`run_onchange_after_setup-cursor-theme.sh.tmpl` packages the folder as a VSIX with `zip` and installs it with Cursor's CLI. It reruns whenever the theme files change or when `Cursor.app` first appears in `/Applications` or `~/Applications`, so a fresh machine picks the theme up after Homebrew installs Cursor. Without a Cursor CLI it prints a warning and skips.
+
+**Settings.** `~/Library/Application Support/Cursor/User/settings.json` is managed on every machine. Cursor writes to it when you change settings in the UI, so copy those changes back:
+
+```bash
+chezmoi re-add "$HOME/Library/Application Support/Cursor/User/settings.json"
+```
+
+**Manual steps on a new machine.** These live in Cursor's internal state, not in `settings.json`:
+
+- **Status bar:** right-click the status bar and untick everything except Editor Selection, Source Control Checkout and Source Control Sync.
+- **Cursor Tab:** Cursor Settings (`cmd+shift+j`) → Tab → turn Cursor Tab off.
+
 ## What's Included
 
 - **Shell**: zsh with starship prompt, zoxide, fzf integration
-- **Development**: mise for tool management, lazygit, lazydocker, nvim (LazyVim), Zed
+- **Development**: mise for tool management, lazygit, lazydocker, nvim (LazyVim), Zed, Cursor (settings and the Anvil Night theme)
 - **Git and GitHub**: per-directory identities, SSH commit signing, the `gh` account wrapper
 - **Agents**: Anvil config, including permission rules
 - **Terminal**: Ghostty with custom configuration
@@ -98,3 +119,5 @@ No secrets live in this repo or in plain text on disk. Keys are stored in 1Passw
 - `~/.config/nvim` is also its own git repo with no remote. Commit there, then `chezmoi re-add ~/.config/nvim`.
 - The Raycast export (`dot_config/raycast`) is from November 2024 and isn't applied. Replace it with a fresh export or delete it.
 - Casks installed before the switch to `/Applications` still live in `~/Applications` and upgrade in place there.
+- Cursor's per-item status bar visibility and the Cursor Tab toggle aren't settings-backed, so they're manual steps (see [Cursor](#cursor)).
+- The Cursor theme can't reproduce everything from the Zed original. VS Code has no dim ANSI colours and no hollow diff hunks, and some Zed UI keys have no equivalent; the commit that added the theme lists each one.
