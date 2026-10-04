@@ -4,6 +4,10 @@
 
 set -euo pipefail
 
+{{- $group := ternary .brew.personal .brew.work .is_personal }}
+{{- $formulae := concat .brew.formulae $group.formulae }}
+{{- $casks := concat .brew.casks $group.casks }}
+
 echo "📦 Installing packages..."
 
 # Ensure Homebrew is in PATH
@@ -20,14 +24,14 @@ brew update
 # Install formulae
 echo "🔧 Installing Homebrew formulae..."
 brew install \
-{{- range .brew.formulae }}
+{{- range $formulae }}
     {{ . | quote }} \
 {{- end }}
 
 # Install casks
 echo "📱 Installing Homebrew casks..."
 brew install --cask \
-{{- range .brew.casks }}
+{{- range $casks }}
     {{ . | quote }} \
 {{- end }}
 

@@ -1,4 +1,8 @@
+{{- $isPersonal := promptBoolOnce . "is_personal" "Is this a personal machine" }}
 sourceDir = {{ joinPath .chezmoi.homeDir "dev/helse/dotfiles" | quote }}
+
+[data]
+is_personal = {{ $isPersonal }}
 
 [edit]
 command = "zed"

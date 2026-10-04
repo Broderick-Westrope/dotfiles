@@ -22,7 +22,7 @@ This will:
 
 ## Managing Packages
 
-Packages are managed in [`.chezmoidata.yaml`](./.chezmoidata.yaml). To add new packages:
+Packages are managed in [`.chezmoidata.yaml`](./.chezmoidata.yaml). The top-level `formulae` and `casks` lists install everywhere; `personal` and `work` add to them depending on the answer to "Is this a personal machine" during `chezmoi init`. To add new packages:
 
 1. Edit the file directly, or
 2. Install packages manually and use these commands to see what's installed:
