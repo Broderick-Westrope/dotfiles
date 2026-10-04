@@ -217,8 +217,6 @@
       "wtp {rm,remove} -f*": "ask",
       "wtp {rm,remove} * -f*": "ask",
       "wtp {rm,remove} *--force*": "ask",
-      "* *.local/share/anvil*": "ask",
-      "* *.zshrc.pre-op.bak*": "ask",
       "base64 *": "allow",
       "docker info *": "allow",
       "mkdir *": "allow",
@@ -325,7 +323,9 @@
       "bq query *{DELETE ,DELETE\n,UPDATE ,UPDATE\n,INSERT ,INSERT\n,MERGE ,MERGE\n,DROP ,DROP\n,TRUNCATE ,TRUNCATE\n,ALTER ,ALTER\n,CREATE ,CREATE\n,GRANT ,GRANT\n,REVOKE ,REVOKE\n,delete ,delete\n,update ,update\n,insert ,insert\n,merge ,merge\n,drop ,drop\n,truncate ,truncate\n,alter ,alter\n,create ,create\n,grant ,grant\n,revoke ,revoke\n}*": "ask",
       "bq query *--destination_table*": "ask",
       "bq query *--replace*": "ask",
-      "bq query *--append_table*": "ask"
+      "bq query *--append_table*": "ask",
+      "* *.local/share/anvil*": "ask",
+      "* *.zshrc.pre-op.bak*": "ask"
     },
     "view": {
       "*": "allow",
