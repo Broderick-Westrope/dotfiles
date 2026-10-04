@@ -104,6 +104,7 @@ chezmoi re-add "$HOME/Library/Application Support/Cursor/User/settings.json"
 
 - **Status bar:** right-click the status bar and untick everything except Editor Selection, Source Control Checkout and Source Control Sync.
 - **Cursor Tab:** Cursor Settings (`cmd+shift+j`) → Tab → turn Cursor Tab off.
+- **Agents sidebar:** Cursor Settings → General → Window Layout → **Editor**. In the Agent layout, Cursor opens the agents sidebar in every new window.
 
 ## What's Included
 
