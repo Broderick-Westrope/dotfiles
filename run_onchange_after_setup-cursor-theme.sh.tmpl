@@ -1,0 +1,93 @@
+#!/bin/bash
+# Reruns when the theme changes: {{ include "cursor/anvil-night/package.json" | sha256sum }} {{ include "cursor/anvil-night/themes/anvil-night-color-theme.json" | sha256sum }}
+# Reruns when Cursor appears: {{ or (stat "/Applications/Cursor.app") (stat (joinPath .chezmoi.homeDir "Applications/Cursor.app")) | ne nil }}
+
+{{- if .system.is_macos }}
+
+set -euo pipefail
+
+SRC="${ANVIL_THEME_SRC:-{{ joinPath .chezmoi.sourceDir "cursor/anvil-night" }}}"
+
+CLI="${ANVIL_CURSOR_CLI:-}"
+if [[ -z "$CLI" ]]; then
+    for candidate in "$(command -v cursor || true)" \
+        "/Applications/Cursor.app/Contents/Resources/app/bin/code" \
+        "$HOME/Applications/Cursor.app/Contents/Resources/app/bin/code"; do
+        if [[ -n "$candidate" && -x "$candidate" ]]; then
+            CLI="$candidate"
+            break
+        fi
+    done
+fi
+
+if [[ -z "$CLI" ]]; then
+    echo "⚠️  Cursor CLI not found; skipping the Anvil Night theme install"
+    exit 0
+fi
+
+echo "🎨 Installing the Anvil Night theme into Cursor..."
+
+/usr/bin/python3 -c 'import json,sys; [json.load(open(p)) for p in sys.argv[1:]]' \
+    "$SRC/package.json" "$SRC/themes/anvil-night-color-theme.json"
+
+field() {
+    /usr/bin/python3 -c 'import json,sys
+v = json.load(open(sys.argv[1]))
+for k in sys.argv[2].split("."):
+    v = v[k]
+print(v)' "$SRC/package.json" "$1"
+}
+NAME=$(field name)
+PUBLISHER=$(field publisher)
+VERSION=$(field version)
+DISPLAY=$(field displayName)
+DESCRIPTION=$(field description)
+ENGINE=$(field engines.vscode)
+
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+mkdir -p "$WORK/extension"
+cp -R "$SRC/package.json" "$SRC/themes" "$WORK/extension/"
+
+cat > "$WORK/[Content_Types].xml" <<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension=".json" ContentType="application/json"/>
+  <Default Extension=".vsixmanifest" ContentType="text/xml"/>
+</Types>
+XML
+
+cat > "$WORK/extension.vsixmanifest" <<XML
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Language="en-US" Id="${NAME}" Version="${VERSION}" Publisher="${PUBLISHER}"/>
+    <DisplayName>${DISPLAY}</DisplayName>
+    <Description xml:space="preserve">${DESCRIPTION}</Description>
+    <Categories>Themes</Categories>
+    <Properties>
+      <Property Id="Microsoft.VisualStudio.Code.Engine" Value="${ENGINE}"/>
+    </Properties>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Code"/>
+  </Installation>
+  <Dependencies/>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true"/>
+  </Assets>
+</PackageManifest>
+XML
+
+VSIX="$WORK/${PUBLISHER}.${NAME}-${VERSION}.vsix"
+(cd "$WORK" && /usr/bin/zip -qrX "$VSIX" "[Content_Types].xml" extension.vsixmanifest extension)
+
+"$CLI" --install-extension "$VSIX" --force
+echo "✅ Anvil Night installed (reload Cursor windows to pick up changes)"
+
+{{- else }}
+
+echo "❌ This script only supports macOS"
+exit 1
+
+{{- end }}
