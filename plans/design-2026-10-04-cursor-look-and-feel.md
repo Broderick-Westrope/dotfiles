@@ -26,7 +26,7 @@
 - The install script is `run_onchange_after_setup-cursor-theme.sh.tmpl`. The name sorts after `install-packages`, so on a fresh machine Homebrew installs Cursor first.
 - Its rerun hash comment includes:
   - the content of every file under `cursor/anvil-night/`, read via `include (joinPath .chezmoi.sourceDir "cursor/anvil-night/...")`;
-  - whether `/Applications/Cursor.app` exists at render time.
+  - whether `Cursor.app` exists in `/Applications` or `~/Applications` at render time.
 
   So editing the theme reruns it, and so does installing Cursor after an apply where it was missing.
 - Scripts run from the destination tree, not the source checkout. The script uses the templated absolute `{{ .chezmoi.sourceDir }}` path and never relative paths.
@@ -38,7 +38,7 @@
     - `extension/package.json` and `extension/themes/…`.
 
     The script stamps the manifest's identity and version from `package.json` so they can't disagree.
-  - Finds the CLI as `cursor` on PATH, else Cursor's bundled `/Applications/Cursor.app/Contents/Resources/app/bin/cursor`, and runs `<cli> --install-extension <vsix> --force`.
+  - Finds the CLI as `cursor` on PATH, else the bundled `Contents/Resources/app/bin/code` inside `/Applications/Cursor.app` or `~/Applications/Cursor.app` (this machine uses the latter), and runs `<cli> --install-extension <vsix> --force`.
   - If no CLI is found, prints a warning and exits 0. The app-exists term in the hash makes it rerun once Cursor is installed.
   - Is macOS-guarded like the existing scripts.
 - If hand-assembling the VSIX proves unreliable during implementation, the fallback is `npx --yes @vscode/vsce@<pinned> package`. Node is available via mise.
@@ -51,7 +51,7 @@
 - [ ] Editing the theme JSON and rerunning `chezmoi apply` reinstalls it; Cursor shows the change after a window reload. Applying again without changes doesn't reinstall.
 - [ ] `chezmoi apply` with the `cursor` CLI absent prints a warning and completes successfully. After Cursor is installed, the next `chezmoi apply` runs the script again and installs the theme.
 - [ ] `.chezmoiignore` lists `cursor/`, `cursor/**`, `plans/` and `plans/**` (chezmoi matches target paths, so both the directory and its contents need patterns). `chezmoi managed` lists nothing under `cursor/` or `plans/`, and `chezmoi diff` is clean after apply.
-- [ ] Verification during development uses `chezmoi --source /Users/broderick.westrope/dev/helse/dotfiles-cursor-look …` (`diff`, `managed`, `apply`), since the configured source dir is the main checkout.
+- [ ] Verification during development uses `chezmoi --source "$WT" …` (`diff`, `managed`, `apply`), where `$WT` is the wtp worktree (`wtp cd feat/cursor-look-and-feel`), since the configured source dir is the main checkout.
 - [ ] The hand-built VSIX installs in Cursor and the theme appears in the picker. If it doesn't, switch to the `vsce` fallback.
 - [ ] Cursor `settings.json` is never parsed as strict JSON by any script; chezmoi copies it byte-for-byte.
 - [ ] The seed conversion accounts for every Zed `style` and `syntax` key: each one is mapped, deliberately approximated, or listed as unsupported, and the commit message records it.
