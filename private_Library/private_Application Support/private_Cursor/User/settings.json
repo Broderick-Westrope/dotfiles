@@ -1,0 +1,82 @@
+{
+  "workbench.colorTheme": "Anvil Night",
+  "window.zoomLevel": 0,
+  "window.commandCenter": false,
+  "workbench.layoutControl.enabled": false,
+  "workbench.agentsWindowButton.enabled": false,
+  "window.autoDetectColorScheme": false,
+  "cursor.general.reduceTransparency": true,
+  "editor.fontFamily": "FiraCode Nerd Font Mono",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 15,
+  "editor.lineHeight": 1.6,
+  "editor.minimap.enabled": false,
+  "editor.stickyScroll.enabled": false,
+  "editor.renderLineHighlight": "gutter",
+  "editor.semanticHighlighting.enabled": true,
+  "breadcrumbs.enabled": true,
+  "terminal.integrated.fontFamily": "FiraCode Nerd Font Mono",
+  "terminal.integrated.fontSize": 15,
+  "terminal.integrated.lineHeight": 1.2,
+  "terminal.integrated.minimumContrastRatio": 1,
+  "terminal.external.osxExec": "Ghostty.app",
+  "cursor.cpp.disabledLanguages": [
+    "plaintext"
+  ],
+  "cursor.composer.showEmptyStateTips": false,
+  "cursor.terminal.enableAiChecks": false,
+  "editor.formatOnSave": true,
+  "editor.accessibilitySupport": "on",
+  "accessibility.signalOptions.volume": 0,
+  "diffEditor.renderSideBySide": false,
+  "diffEditor.ignoreTrimWhitespace": true,
+  "git.openRepositoryInParentFolders": "always",
+  "git.blame.editorDecoration.enabled": false,
+  "git.blame.statusBarItem.enabled": false,
+  "scm.workingSets.enabled": true,
+  "scm.workingSets.default": "empty",
+  "gitlens.views.scm.grouped.views": {
+    "commits": false,
+    "branches": false,
+    "remotes": false,
+    "stashes": false,
+    "tags": false,
+    "worktrees": false,
+    "contributors": false,
+    "fileHistory": false,
+    "repositories": false,
+    "searchAndCompare": true,
+    "launchpad": false
+  },
+  "gitlens.views.searchAndCompare.files.layout": "tree",
+  "gitlens.graph.details.location": "auto",
+  "githubPullRequests.pullBranch": "never",
+  "workbench.editorAssociations": {
+    "*.svg": "default"
+  },
+  "security.promptForLocalFileProtocolHandling": false,
+  "go.toolsManagement.autoUpdate": true,
+  "gopls": {
+    "ui.semanticTokens": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[graphql]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "sqltools.format": {
+    "linesBetweenQueries": 1
+  },
+  "traycer.additionalAgents": [
+    "Export as Markdown",
+    "Claude Code Extension"
+  ],
+  "claudeCode.preferredLocation": "panel"
+}
