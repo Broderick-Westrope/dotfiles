@@ -39,17 +39,22 @@ Full spec: `plans/design-2026-10-04-cursor-look-and-feel.md`. Read it before sta
 - Run chezmoi with `--source "$WT"`, never against the main checkout `~/dev/helse/dotfiles`.
 - Cursor is installed at `~/Applications/Cursor.app` (version 3.23.12, VS Code base 1.128.0). Its CLI is `~/Applications/Cursor.app/Contents/Resources/app/bin/code`, symlinked as `/opt/homebrew/bin/cursor`.
 - Commit at the end of each task with a conventional-commit message (`feat:`, `chore:`, `docs:`), matching the repo history.
+- Verify commands must fail loudly. Check a command's exit status before inspecting its output, and never mask a failure with a trailing `; echo`.
 
 ## Context Loading
 
-```bash
-read "$WT/plans/design-2026-10-04-cursor-look-and-feel.md"
-read "$WT/.chezmoiignore"
-read "$WT/run_onchange_after_install-packages.sh.tmpl"
-read "$WT/README.md"
-read ~/dev/helse/zed-anvil-theme/themes/anvil-night.json
-read "$HOME/Library/Application Support/Cursor/User/settings.json"
-```
+Read these files (with the file viewer tool) before starting:
+
+- `$WT/plans/design-2026-10-04-cursor-look-and-feel.md`
+- `$WT/.chezmoiignore`
+- `$WT/run_onchange_after_install-packages.sh.tmpl`
+- `$WT/README.md`
+- `~/dev/helse/zed-anvil-theme/themes/anvil-night.json`
+- `~/Library/Application Support/Cursor/User/settings.json`
+
+## Ordering
+
+The tasks are sequential gates: theme (1) → packaging and deployment (2) → managed settings (3) → manual UI state and visual acceptance (4). Task 3 step 2 (discovering Cursor's setting keys) is research and can start in parallel with Task 1. Each task's Verify must pass before the next task starts.
 
 ## Theme Tasks
 
@@ -203,7 +208,7 @@ read "$HOME/Library/Application Support/Cursor/User/settings.json"
    | `string.special`, `string.special.symbol` | `string.other.symbol`, `constant.other.symbol` | — |
    | `number` | `constant.numeric` | `number` |
    | `boolean` | `constant.language.boolean` | — |
-   | `constant` | `constant`, `variable.other.constant`, `constant.language` | `variable.readonly`, `enumMember` |
+   | `constant` | `constant`, `variable.other.constant`, `constant.language`, `variable.other.enummember` | `variable.readonly`, `enumMember` |
    | `function` | `entity.name.function`, `support.function`, `meta.function-call` | `function` |
    | `function.method` | `entity.name.function.member`, `meta.method-call` | `method` |
    | `function.builtin` | `support.function.builtin` | `function.defaultLibrary`, `method.defaultLibrary` |
@@ -234,10 +239,11 @@ read "$HOME/Library/Application Support/Cursor/User/settings.json"
    | `link_uri` | `markup.underline.link` | — |
    | `text.literal` | `markup.inline.raw`, `markup.raw` | — |
    | `variant` | `entity.name.type.enum.member` | — |
-   | `primary` | `source` (scope-less default) | — |
-   | `hint`, `predictive` | — (UNSUPPORTED as syntax; covered by UI keys) | — |
 
-   Read the actual Zed `syntax` keys from the file. Any key in the file that isn't in this table must fail the script, so the table gets updated deliberately.
+   - Syntax `primary` is **APPROX**: the default text colour comes from `editor.foreground`, which has the same value. Syntax `hint` and `predictive` are **UNSUPPORTED**; the UI keys of the same names cover them.
+   - Every table in the script lists **literal keys only**. Expand wildcards like `ghost_element.*`, `hidden*`, `unreachable*` and `terminal.ansi.dim_*` into enumerated keys, so a new Zed key fails the script rather than silently matching.
+   - `players[0].background` is UNSUPPORTED (VS Code has no avatar or player colour).
+   - Read the actual Zed `syntax` keys from the file. Any key in the file that isn't in a table must fail the script, so the tables get updated deliberately.
 
 4. [ ] Run the seed and save the report:
    ```bash
@@ -252,7 +258,8 @@ read "$HOME/Library/Application Support/Cursor/User/settings.json"
 node -e 'const t=require(process.argv[1]); const bad=Object.entries(t.colors).filter(([,v])=>!/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v)); if(bad.length){console.error(bad);process.exit(1)} for (const k of ["editor.background","sideBar.background","panel.background","terminal.background","titleBar.activeBackground","titleBar.inactiveBackground","statusBar.background","statusBar.noFolderBackground","statusBar.debuggingBackground","tab.activeBackground","tab.inactiveBackground","editorGroupHeader.tabsBackground"]) if(t.colors[k]!=="#050014"){console.error("bg",k,t.colors[k]);process.exit(1)} console.log("ok", Object.keys(t.colors).length, "colors", t.tokenColors.length, "token rules", Object.keys(t.semanticTokenColors).length, "semantic")' "$WT/cursor/anvil-night/themes/anvil-night-color-theme.json"
 # Expected: ok <n> colors ...
 node "$TMPDIR/anvil-seed/seed.mjs" ~/dev/helse/zed-anvil-theme/themes/anvil-night.json /tmp/anvil-check.json >/dev/null && cmp /tmp/anvil-check.json "$WT/cursor/anvil-night/themes/anvil-night-color-theme.json" && echo deterministic
-chezmoi --source "$WT" managed | grep -E '^(cursor|plans)' ; echo "exit=$? (expected 1: nothing listed)"
+MANAGED=$(chezmoi --source "$WT" managed) || { echo "chezmoi managed failed"; exit 1; }
+if grep -qE '^(cursor|plans)(/|$)' <<<"$MANAGED"; then echo "FAIL: cursor/ or plans/ is managed"; exit 1; else echo "ignore ok"; fi
 ```
 
 ### Task 2: Install script
@@ -274,17 +281,19 @@ chezmoi --source "$WT" managed | grep -E '^(cursor|plans)' ; echo "exit=$? (expe
 
    set -euo pipefail
 
-   SRC={{ joinPath .chezmoi.sourceDir "cursor/anvil-night" | quote }}
+   SRC="${ANVIL_THEME_SRC:-{{ joinPath .chezmoi.sourceDir "cursor/anvil-night" }}}"
 
-   CLI=""
-   for candidate in "$(command -v cursor || true)" \
-       "/Applications/Cursor.app/Contents/Resources/app/bin/code" \
-       "$HOME/Applications/Cursor.app/Contents/Resources/app/bin/code"; do
-       if [[ -n "$candidate" && -x "$candidate" ]]; then
-           CLI="$candidate"
-           break
-       fi
-   done
+   CLI="${ANVIL_CURSOR_CLI:-}"
+   if [[ -z "$CLI" ]]; then
+       for candidate in "$(command -v cursor || true)" \
+           "/Applications/Cursor.app/Contents/Resources/app/bin/code" \
+           "$HOME/Applications/Cursor.app/Contents/Resources/app/bin/code"; do
+           if [[ -n "$candidate" && -x "$candidate" ]]; then
+               CLI="$candidate"
+               break
+           fi
+       done
+   fi
 
    if [[ -z "$CLI" ]]; then
        echo "⚠️  Cursor CLI not found; skipping the Anvil Night theme install"
@@ -296,9 +305,14 @@ chezmoi --source "$WT" managed | grep -E '^(cursor|plans)' ; echo "exit=$? (expe
    /usr/bin/python3 -c 'import json,sys; [json.load(open(p)) for p in sys.argv[1:]]' \
        "$SRC/package.json" "$SRC/themes/anvil-night-color-theme.json"
 
-   read -r NAME PUBLISHER VERSION DISPLAY < <(/usr/bin/python3 -c 'import json,sys; p=json.load(open(sys.argv[1])); print(p["name"], p["publisher"], p["version"], p["displayName"].replace(" ", "_"))' "$SRC/package.json")
-   DISPLAY="${DISPLAY//_/ }"
-   ENGINE=$(/usr/bin/python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["engines"]["vscode"])' "$SRC/package.json")
+   field() { /usr/bin/python3 -c 'import json,sys; p=json.load(open(sys.argv[1])); v=p
+   for k in sys.argv[2].split("."): v=v[k]
+   print(v)' "$SRC/package.json" "$1"; }
+   NAME=$(field name)
+   PUBLISHER=$(field publisher)
+   VERSION=$(field version)
+   DISPLAY=$(field displayName)
+   ENGINE=$(field engines.vscode)
 
    WORK=$(mktemp -d)
    trap 'rm -rf "$WORK"' EXIT
@@ -348,23 +362,59 @@ chezmoi --source "$WT" managed | grep -E '^(cursor|plans)' ; echo "exit=$? (expe
 
    {{- end }}
    ```
-   Validation uses the system `/usr/bin/python3` because Node comes from mise and may not be on PATH during `chezmoi apply`.
+   - Validation uses the system `/usr/bin/python3`, because Node comes from mise and may not be on PATH during `chezmoi apply`.
+   - Each `field` call is a plain command substitution, so under `set -e` a missing key or bad JSON aborts the script.
+   - `ANVIL_THEME_SRC` and `ANVIL_CURSOR_CLI` exist only so the lifecycle tests can inject failures. Don't document them as user-facing.
 
 2. [ ] Check how chezmoi renders the template: `chezmoi --source "$WT" execute-template < run_onchange_after_setup-cursor-theme.sh.tmpl | head -5`. The second comment line must render to `true` on this machine. If `stat` on a missing path errors instead of returning nil, switch to `{{ or (glob "/Applications/Cursor.app") (glob (joinPath .chezmoi.homeDir "Applications/Cursor.app")) | len | ne 0 }}`.
 
-3. [ ] Run the install for real: `chezmoi --source "$WT" apply --include scripts -v`.
+3. [ ] Check which scripts would run before running any: `chezmoi --source "$WT" apply --include scripts --dry-run -v`. Only `setup-cursor-theme` should be listed. chezmoi keys `run_onchange_` state by rendered content, so `install-packages` won't rerun unless its Brewfile hash differs from the last apply. If anything else is listed, stop and report it instead of applying.
 
-4. [ ] If `--install-extension` rejects the hand-built VSIX, use the spec's fallback instead. Replace the build block with `npx --yes @vscode/vsce@3.2.1 package --no-dependencies --allow-missing-repository --skip-license -o "$VSIX"`, run from a copy of `$SRC`, and resolve `npx` through mise (`"$HOME/.local/bin/mise" exec node -- npx …`). Note the switch in the commit message.
+4. [ ] Run the install for real: `chezmoi --source "$WT" apply --include scripts -v`.
 
-5. [ ] Commit with message `feat: install the Anvil Night theme into Cursor on chezmoi apply`.
+5. [ ] If `--install-extension` rejects the hand-built VSIX, use the spec's fallback instead:
+   - Replace the build block with `npx --yes @vscode/vsce@3.2.1 package --no-dependencies --allow-missing-repository --skip-license -o "$VSIX"`, run from a copy of `$SRC`.
+   - Resolve mise as `MISE=$(command -v mise || echo /opt/homebrew/bin/mise)` and run `"$MISE" exec node@22 -- npx …`, so Node is installed if missing.
+   - Note the switch in the commit message.
 
-**Verify:**
+6. [ ] Commit with message `feat: install the Anvil Night theme into Cursor on chezmoi apply`.
+
+**Verify** (run as one script; any failure aborts it):
 ```bash
-cursor --list-extensions --show-versions | grep broderick-westrope.anvil-night
-# Expected: broderick-westrope.anvil-night@0.1.0
-chezmoi --source "$WT" apply --include scripts -v 2>&1 | grep -c "Installing the Anvil Night" ; echo "(expected 0: no rerun without changes)"
-PATH=/usr/bin:/bin chezmoi --source "$WT" execute-template < run_onchange_after_setup-cursor-theme.sh.tmpl > /tmp/t.sh && HOME=/tmp/nohome PATH=/usr/bin:/bin bash /tmp/t.sh; echo "exit=$?"
-# Expected: the "Cursor CLI not found" warning, exit=0
+set -euo pipefail
+CHEZMOI=$(command -v chezmoi)
+T=$(mktemp -d)
+"$CHEZMOI" --source "$WT" execute-template < run_onchange_after_setup-cursor-theme.sh.tmpl > "$T/run.sh"
+
+# 1. Installed
+cursor --list-extensions --show-versions | grep -qx 'broderick-westrope.anvil-night@0.1.0' && echo "installed ok"
+
+# 2. Unchanged -> no rerun
+DRY=$("$CHEZMOI" --source "$WT" apply --include scripts --dry-run -v)
+! grep -q setup-cursor-theme <<<"$DRY" && echo "no-rerun ok"
+
+# 3. Changed -> rerun (theme edit changes the rendered hash)
+cp cursor/anvil-night/package.json "$T/pkg.bak"
+sed -i '' 's/"version": "0.1.0"/"version": "0.1.1"/' cursor/anvil-night/package.json
+DRY=$("$CHEZMOI" --source "$WT" apply --include scripts --dry-run -v)
+cp "$T/pkg.bak" cursor/anvil-night/package.json
+grep -q setup-cursor-theme <<<"$DRY" && echo "rerun-on-change ok"
+
+# 4. No CLI anywhere -> warning, exit 0 (this machine has no /Applications/Cursor.app)
+[[ ! -e /Applications/Cursor.app ]]
+OUT=$(HOME="$T/nohome" PATH=/usr/bin:/bin bash "$T/run.sh")
+grep -q "Cursor CLI not found" <<<"$OUT" && echo "no-cli ok"
+
+# 5. Malformed JSON -> non-zero, nothing installed
+mkdir -p "$T/bad/themes"; cp cursor/anvil-night/package.json "$T/bad/"; echo '{' > "$T/bad/themes/anvil-night-color-theme.json"
+if ANVIL_THEME_SRC="$T/bad" ANVIL_CURSOR_CLI=/usr/bin/true bash "$T/run.sh"; then echo "FAIL malformed"; exit 1; else echo "malformed ok"; fi
+
+# 6. Installer failure -> non-zero
+if ANVIL_CURSOR_CLI=/usr/bin/false bash "$T/run.sh"; then echo "FAIL installer"; exit 1; else echo "installer-failure ok"; fi
+
+# 7. Missing Cursor.app -> rendered marker changes (so installing Cursor triggers a rerun)
+grep -q 'Reruns when Cursor appears: true' "$T/run.sh" && echo "app-marker ok"
+# Expected: all seven "ok" lines
 ```
 
 ## Settings Tasks
@@ -391,7 +441,8 @@ PATH=/usr/bin:/bin chezmoi --source "$WT" execute-template < run_onchange_after_
    ```
    - Also open Cursor Settings (`cmd+shift+j`) and turn off Cursor Tab, inline/`cmd+k` suggestions, and any "show in status bar" AI toggles. Some of these live in Cursor's own settings store rather than `settings.json`.
    - Record which controls are settings-backed (they go in the file) and which are UI-only (they go in the README in Task 4).
-   - For Cursor Tab, `"cursor.cpp.disabledLanguages": ["*"]` is the settings-backed fallback, if the bundle confirms the key.
+   - A key appearing in the bundle doesn't prove it works. After reloading the window, confirm each key's **effect**: the button or status item is gone, or Tab completions no longer appear in a `.ts` file. Drop any key that has no observable effect.
+   - For Cursor Tab, try `"cursor.cpp.disabledLanguages": ["*"]` only if the bundle's consumer code matches the `"*"` wildcard (`grep -o 'disabledLanguages[^;]*' "$B" | head`). Otherwise turn Tab off in Cursor Settings and record it as UI-only.
 
 3. [ ] Check the activity bar state. If `grep -o '"workbench.activityBar.location"[^}]*default:"[a-z]*"' "$B"` (or the Settings UI) shows the default is already `"hidden"`, leave it out of the file. Otherwise add `"workbench.activityBar.location": "hidden"`.
 
@@ -470,9 +521,13 @@ Then reload Cursor (`Developer: Reload Window`). Cursor must show no "unknown se
 5. [ ] Syntax check:
    - Create `fixture.go` (a package, an import, a const, a struct with a field, a method with a parameter, a function call, a string, a number, a comment, an enum-like `iota` block and an operator) and `fixture.ts` (the same, plus an interface, an enum and a class).
    - Open both in Cursor and use `Developer: Inspect Editor Tokens and Scopes` on each category from the spec. Each foreground must equal the Zed `syntax` colour; keywords and comments must be italic.
+   - Repeat with `"editor.semanticHighlighting.enabled": false` (temporarily, in workspace settings) to check the TextMate fallbacks, then remove the override.
+   - Check modifiers and weights: a Go `const` or a TS `readonly` field gets the constant colour; a builtin like `len()` or `console.log` gets `function.builtin`; markdown `**bold**` is bold.
+   - Terminal: run `for i in $(seq 0 15); do printf "\e[38;5;${i}m%3d \e[0m" $i; done; echo` in Cursor's terminal and in Ghostty, and compare.
+   - Git and diffs: modify a tracked file. Gutter markers and the Explorer/SCM file colours should be the version_control colours, and the diff editor's line and word backgrounds should be the diff_hunk and word colours.
    - Fix mismatches by editing the theme JSON (bump the version), reapply, and recheck.
 
-6. [ ] Density check: open the same file in Zed and Cursor side by side. Editor text must be the same size, sidebar rows no larger than Zed's, and tab and status bar heights no larger than Zed's. If this fails, record it as a follow-up in the README; don't change zoom.
+6. [ ] Density check: open the same file in Zed and Cursor side by side. Editor text must be the same size, sidebar rows no larger than Zed's, and tab and status bar heights no larger than Zed's. If this fails, **stop and report to the user**: it's a spec criterion, so changing it means amending the spec, not quietly recording a known gap. Don't change zoom.
 
 7. [ ] Commit the README (and any theme fixes, as separate `fix:` commits) with message `docs: document the Cursor theme, settings and manual steps`.
 
@@ -484,3 +539,14 @@ chezmoi --source "$WT" diff; echo "(expected: empty)"
 git -C "$WT" status --short; echo "(expected: clean)"
 ```
 Every checklist item in steps 4–6 has been ticked or recorded as a known gap.
+
+<!-- Review notes (devils-advocate, round 1):
+- Verify commands could pass on chezmoi failures, and grep -c/echo masked exit codes. Replaced with asserted, isolated lifecycle tests: installed, unchanged, changed, no CLI, malformed JSON, installer failure, app marker.
+- Added test-only overrides ANVIL_THEME_SRC/ANVIL_CURSOR_CLI and a dry-run gate before applying scripts.
+- Mapping: classified players[0].background; added variable.other.enummember; removed the bogus `source` scope for primary; required literal keys only, no wildcards.
+- Fixed the mise path (Homebrew, not ~/.local/bin) and replaced the process-substitution read with checked command substitutions.
+- Settings keys must be confirmed by effect after reload, not just by appearing in the bundle.
+- A density failure stops and goes to the user rather than becoming a known gap.
+- Added syntax checks with semantic highlighting off, plus terminal ANSI and git/diff checks.
+- Phasing suggested (4 domains). Kept as one file with explicit sequential gates: it's a single-user dotfiles branch with one reviewer, and the domains share one goal and one verification pass.
+-->
