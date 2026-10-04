@@ -23,11 +23,23 @@
 - The theme source lives at `cursor/anvil-night/` (`package.json`, `themes/anvil-night-color-theme.json`) and is listed in `.chezmoiignore`, so it is never copied into `$HOME`. The theme JSON is the source of truth and is edited by hand.
 - The seed conversion script is a one-off. It runs from outside this repo and is never committed here. The approximated and unsupported Zed keys it reports are recorded in the commit that adds the theme.
 - The extension manifest has a stable `publisher` (`broderick-westrope`), `name` (`anvil-night`), `version`, an `engines.vscode` compatible with the installed Cursor, and `contributes.themes` with `uiTheme: "vs-dark"`.
-- `run_onchange_after_install-cursor-theme.sh.tmpl` embeds a hash of every file under `cursor/anvil-night/` (via chezmoi templating, like `install-packages.sh.tmpl` hashes the Brewfile), so editing the theme reruns it. The script:
+- The install script is `run_onchange_after_setup-cursor-theme.sh.tmpl`. The name sorts after `install-packages`, so on a fresh machine Homebrew installs Cursor first.
+- Its rerun hash comment includes:
+  - the content of every file under `cursor/anvil-night/`, read via `include (joinPath .chezmoi.sourceDir "cursor/anvil-night/...")`;
+  - whether `/Applications/Cursor.app` exists at render time.
+
+  So editing the theme reruns it, and so does installing Cursor after an apply where it was missing.
+- Scripts run from the destination tree, not the source checkout. The script uses the templated absolute `{{ .chezmoi.sourceDir }}` path and never relative paths.
+- The script:
   - Validates that the theme JSON parses.
-  - Builds a `.vsix` in a temp dir with `zip`. A VSIX is a zip containing `extension.vsixmanifest`, `[Content_Types].xml` and `extension/…`, so no Node or `vsce` is required.
-  - Runs `cursor --install-extension <vsix> --force`.
-  - Skips with a warning (rather than failing `chezmoi apply`) if the `cursor` CLI isn't on PATH.
+  - Builds a `.vsix` in a `mktemp -d` dir with `zip`, containing:
+    - `[Content_Types].xml`, declaring the `.json` and `.vsixmanifest` content types;
+    - `extension.vsixmanifest`: PackageManifest schema 2.0.0, Identity `Id`/`Publisher`/`Version` matching `package.json`, `Microsoft.VisualStudio.Code` installation target, and a `Microsoft.VisualStudio.Code.Manifest` asset pointing at `extension/package.json`;
+    - `extension/package.json` and `extension/themes/…`.
+
+    The script stamps the manifest's identity and version from `package.json` so they can't disagree.
+  - Finds the CLI as `cursor` on PATH, else Cursor's bundled `/Applications/Cursor.app/Contents/Resources/app/bin/cursor`, and runs `<cli> --install-extension <vsix> --force`.
+  - If no CLI is found, prints a warning and exits 0. The app-exists term in the hash makes it rerun once Cursor is installed.
   - Is macOS-guarded like the existing scripts.
 - If hand-assembling the VSIX proves unreliable during implementation, the fallback is `npx --yes @vscode/vsce@<pinned> package`. Node is available via mise.
 - Cursor settings are managed at `private_Library/private_Application Support/private_Cursor/User/settings.json` on every machine (unlike VS Code, which stays personal-only). The file stays JSONC. Machine-specific keys stay out; anything machine-specific later becomes a `.tmpl`.
@@ -37,8 +49,11 @@
 **Success Criteria:**
 - [ ] On a machine with Cursor installed, `chezmoi apply` installs Anvil Night, and Cursor lists it under the Color Theme picker.
 - [ ] Editing the theme JSON and rerunning `chezmoi apply` reinstalls it; Cursor shows the change after a window reload. Applying again without changes doesn't reinstall.
-- [ ] `chezmoi apply` with the `cursor` CLI absent prints a warning and completes successfully.
-- [ ] `chezmoi managed` doesn't list `cursor/anvil-night/`, and `chezmoi diff` is clean after apply.
+- [ ] `chezmoi apply` with the `cursor` CLI absent prints a warning and completes successfully. After Cursor is installed, the next `chezmoi apply` runs the script again and installs the theme.
+- [ ] `.chezmoiignore` lists `cursor/`, `cursor/**`, `plans/` and `plans/**` (chezmoi matches target paths, so both the directory and its contents need patterns). `chezmoi managed` lists nothing under `cursor/` or `plans/`, and `chezmoi diff` is clean after apply.
+- [ ] Verification during development uses `chezmoi --source /Users/broderick.westrope/dev/helse/dotfiles-cursor-look …` (`diff`, `managed`, `apply`), since the configured source dir is the main checkout.
+- [ ] The hand-built VSIX installs in Cursor and the theme appears in the picker. If it doesn't, switch to the `vsce` fallback.
+- [ ] Cursor `settings.json` is never parsed as strict JSON by any script; chezmoi copies it byte-for-byte.
 - [ ] The seed conversion accounts for every Zed `style` and `syntax` key: each one is mapped, deliberately approximated, or listed as unsupported, and the commit message records it.
 - [ ] In Cursor, `#050014` is the background of:
   - editor, sidebar, panel and terminal
@@ -55,13 +70,18 @@
   - `window.zoomLevel` is set to 0.
   - Editor and terminal font size 15, FiraCode Nerd Font Mono, ligatures on.
   - `editor.lineHeight` and `terminal.integrated.lineHeight` are numeric values approximating Zed's "comfortable" (1.6 for the editor).
-  - VS Code has no general UI font-size setting, so chrome density is accepted by side-by-side comparison with Zed. A small zoom (e.g. 0.5) is the fallback.
+  - VS Code has no general UI font-size setting. Chrome density is checked by opening the same file in Zed and Cursor side by side:
+    - editor text the same size;
+    - sidebar row text no larger than Zed's;
+    - tab and status bar heights no larger than Zed's.
+
+    Changing zoom away from 0 is a later iteration, not part of this spec.
 - [ ] Minimap off, sticky scroll off, `editor.renderLineHighlight: "gutter"`, command center and layout controls off. The activity bar stays hidden: check the current effective/profile state and codify it in settings if it isn't already.
 - [ ] Status bar:
   - `git.blame.statusBarItem.enabled: false`, and the other setting-backed AI and extension items are disabled.
   - The remaining items are pruned manually through the status bar context menu.
   - After a reload, only editor selection, source control checkout and source control sync remain.
-  - The manual pruning steps are documented in the README, since they aren't settings-backed.
+  - The manual pruning steps are documented in the README, since they aren't settings-backed. `chezmoi apply` restores only the settings-backed part; the per-item pruning is a manual step on each new machine.
 - [ ] Cursor AI: Cursor Tab is disabled, and the inline prompt, agent/composer/chat entry points are hidden. Each control is verified against the installed Cursor version, and any surface that can't be removed is recorded in the README's known gaps.
 - [ ] The old `workbench.colorCustomizations` diff overrides and `workbench.colorTheme: "Tokyo Night Dark"` are removed. `workbench.colorTheme` is `"Anvil Night"`.
 - [ ] The README covers: the Cursor theme and how to edit it, the install script, `chezmoi re-add` for UI-made Cursor setting changes, manual status bar pruning, and known gaps.
@@ -96,6 +116,6 @@
 - `~/Library/Application Support/Cursor/User/settings.json`: current live Cursor settings (zoom 1.8, Tokyo Night Dark, diff colour overrides, JSONC).
 - `~/.config/zed/settings.json` (tracked as `dot_config/zed/settings.json`): reference for the target feel.
 - `run_onchange_after_install-packages.sh.tmpl`: pattern for a hash-triggered, macOS-guarded script.
-- `.chezmoiignore`: add `cursor/`.
+- `.chezmoiignore`: add `cursor/`, `cursor/**`, `plans/`, `plans/**`.
 - `private_Library/private_Application Support/private_Code/User/settings.json`: existing VS Code settings, the naming pattern for the Cursor path.
 - `README.md`: "Known gaps" section and the `chezmoi re-add` note.
