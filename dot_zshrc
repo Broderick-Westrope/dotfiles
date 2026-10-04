@@ -16,6 +16,7 @@ export PATH="$GOBIN:$PATH"
 # Post-path env variables (default)
 export EDITOR="zed --wait"
 export HOMEBREW_CASK_OPTS="--appdir=~/Applications"
+export HOMEBREW_BUNDLE_FILE_GLOBAL="$HOME/.config/homebrew/Brewfile"
 export GIT_CONFIG_GLOBAL="$HOME/.config/git/config"
 
 # Keys live in 1Password; this file only holds op:// references.
@@ -58,7 +59,6 @@ alias bc="brocode"
 alias cping="claude -p "hi" --model "haiku""
 alias typora="open -a typora"
 alias mu="muninn web"
-alias code="zed"
 
 function mkz() {
     mkdir "$1"

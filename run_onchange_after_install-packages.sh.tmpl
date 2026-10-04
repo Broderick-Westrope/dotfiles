@@ -1,0 +1,23 @@
+#!/bin/bash
+# Reruns whenever the rendered Brewfile changes: {{ includeTemplate "Brewfile" . | sha256sum }}
+
+{{- if .system.is_macos }}
+
+set -euo pipefail
+
+if [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+echo "📦 Installing packages missing from the Brewfile..."
+brew bundle install --no-upgrade --file "$HOME/.config/homebrew/Brewfile"
+echo "✅ Package installation complete"
+
+{{- else }}
+
+echo "❌ This script only supports macOS"
+exit 1
+
+{{- end }}

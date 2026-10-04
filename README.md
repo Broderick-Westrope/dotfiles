@@ -22,17 +22,20 @@ This will:
 
 ## Managing Packages
 
-Packages are managed in [`.chezmoidata.yaml`](./.chezmoidata.yaml). The top-level `formulae` and `casks` lists install everywhere; `personal` and `work` add to them depending on the answer to "Is this a personal machine" during `chezmoi init`. To add new packages:
+Packages are managed in [`.chezmoidata.yaml`](./.chezmoidata.yaml). The top-level `formulae` and `casks` lists install everywhere; `personal` and `work` add to them depending on the answer to "Is this a personal machine" during `chezmoi init`.
 
-1. Edit the file directly, or
-2. Install packages manually and use these commands to see what's installed:
+chezmoi renders those lists into `~/.config/homebrew/Brewfile`. Whenever the rendered Brewfile changes, `chezmoi apply` installs anything missing with `brew bundle install --no-upgrade`. It never upgrades or removes packages.
 
 ```shell
-# List formulae (CLI tools)
-brew list --installed-on-request --formulae
+# Show packages in the Brewfile that aren't installed
+brew bundle check --verbose --no-upgrade --global
 
-# List casks (GUI applications)  
-brew list --casks
+# Preview what isn't in the Brewfile, then remove it once the list looks right
+brew bundle cleanup --global
+brew bundle cleanup --global --force
+
+# Upgrade separately, when you choose to
+brew upgrade
 ```
 
 ## Common Commands
