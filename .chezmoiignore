@@ -1,3 +1,7 @@
 README.md
 .gitignore
 .config/gh/hosts.yml
+.config/raycast
+{{- if not .is_personal }}
+Library/Application Support/Code
+{{- end }}
