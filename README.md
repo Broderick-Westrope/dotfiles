@@ -13,12 +13,20 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --source ~/dev/helse/dotfiles --app
 ```
 
 This will:
-1. Install chezmoi
-2. Clone this repository
+1. Install chezmoi and clone this repository to `~/dev/helse/dotfiles`
+2. Ask "Is this a personal machine", which picks the personal or work package group
 3. Install Homebrew (if not present)
-4. Install all packages defined in `.chezmoidata.yaml`
-5. Apply all dotfile configurations
-6. Set up shell environment
+4. Apply all dotfile configurations
+5. Install the packages in the generated Brewfile
+6. Set up the shell environment
+
+### Before the first apply
+
+These aren't in the repo and need setting up by hand:
+
+- **SSH key for the personal GitHub account.** `~/.gitconfig-helse` rewrites `https://github.com/` to `git@github.com-personal:`, so `~/.ssh/config` needs a `Host github.com-personal` entry pointing at that key.
+- **1Password.** Install the app, turn on Settings > Developer > Integrate with 1Password CLI, and make sure the items listed in `~/.config/op-refs.env` exist.
+- **gh accounts.** Run `gh auth login` once for each account (`Broderick-Westrope` and `brodie-euc`).
 
 ## Managing Packages
 
@@ -53,13 +61,40 @@ chezmoi edit ~/.zshrc
 # Add a new file to be managed
 chezmoi add ~/.new-config
 
+# Copy edits made directly to a managed file back into the repo
+chezmoi re-add ~/.zshrc
+
+# Apply files without running the setup scripts
+chezmoi apply --exclude scripts
+
 # Update from repository
 chezmoi update
 ```
 
+## Secrets
+
+No secrets live in this repo or in plain text on disk. Keys are stored in 1Password and `~/.config/op-refs.env` holds only `op://` references.
+
+- `withkeys <cmd>` runs one command with those keys loaded (`op run`).
+- `anvil` is a shell function that loads only the permission bouncer's key at startup.
+- Don't use chezmoi's 1Password template functions for keys: they write the resolved value into the file on disk, where agents can read it.
+
+## GitHub accounts
+
+- **git:** `~/.config/git/config` includes `~/.gitconfig-helse` for anything under `~/dev/helse/`, which switches to the personal email, signing key and SSH host. Linked worktrees inherit it because their git dir lives in the main repo.
+- **gh:** `~/.local/bin/gh` wraps the real `gh` and sets `GH_TOKEN` per call: `Broderick-Westrope` for repos under `~/dev/helse/` (or `--repo Broderick-Westrope/...`), `brodie-euc` otherwise. Override with `GH_ACCOUNT=<login>`.
+
 ## What's Included
 
 - **Shell**: zsh with starship prompt, zoxide, fzf integration
-- **Development**: mise for tool management, lazygit, lazydocker
-- **Applications**: Arc browser, VS Code, various productivity apps
+- **Development**: mise for tool management, lazygit, lazydocker, nvim (LazyVim), Zed
+- **Git and GitHub**: per-directory identities, SSH commit signing, the `gh` account wrapper
+- **Agents**: Anvil config, including permission rules
 - **Terminal**: Ghostty with custom configuration
+
+## Known gaps
+
+- `~/.config/anvil/anvil.json` on this machine has a skill-paths hook that points at a temporary worktree, so it isn't tracked yet. `chezmoi apply` skips the file while it differs; run `chezmoi re-add` once the hook has a permanent home.
+- `~/.config/nvim` is also its own git repo with no remote. Commit there, then `chezmoi re-add ~/.config/nvim`.
+- The Raycast export (`dot_config/raycast`) is from November 2024 and isn't applied. Replace it with a fresh export or delete it.
+- Casks installed before the switch to `/Applications` still live in `~/Applications` and upgrade in place there.
