@@ -387,33 +387,35 @@ T=$(mktemp -d)
 "$CHEZMOI" --source "$WT" execute-template < run_onchange_after_setup-cursor-theme.sh.tmpl > "$T/run.sh"
 
 # 1. Installed
-cursor --list-extensions --show-versions | grep -qx 'broderick-westrope.anvil-night@0.1.0' && echo "installed ok"
+fail() { echo "FAIL: $1"; exit 1; }
+cursor --list-extensions --show-versions | grep -qx 'broderick-westrope.anvil-night@0.1.0' || fail installed; echo "installed ok"
 
 # 2. Unchanged -> no rerun
 DRY=$("$CHEZMOI" --source "$WT" apply --include scripts --dry-run -v)
-! grep -q setup-cursor-theme <<<"$DRY" && echo "no-rerun ok"
+if grep -q setup-cursor-theme <<<"$DRY"; then fail no-rerun; fi; echo "no-rerun ok"
 
 # 3. Changed -> rerun (theme edit changes the rendered hash)
 cp cursor/anvil-night/package.json "$T/pkg.bak"
+trap 'cp "$T/pkg.bak" cursor/anvil-night/package.json' EXIT
 sed -i '' 's/"version": "0.1.0"/"version": "0.1.1"/' cursor/anvil-night/package.json
 DRY=$("$CHEZMOI" --source "$WT" apply --include scripts --dry-run -v)
 cp "$T/pkg.bak" cursor/anvil-night/package.json
-grep -q setup-cursor-theme <<<"$DRY" && echo "rerun-on-change ok"
+grep -q setup-cursor-theme <<<"$DRY" || fail rerun-on-change; echo "rerun-on-change ok"
 
 # 4. No CLI anywhere -> warning, exit 0 (this machine has no /Applications/Cursor.app)
-[[ ! -e /Applications/Cursor.app ]]
+[[ ! -e /Applications/Cursor.app ]] || fail "/Applications/Cursor.app exists; this check needs it absent"
 OUT=$(HOME="$T/nohome" PATH=/usr/bin:/bin bash "$T/run.sh")
-grep -q "Cursor CLI not found" <<<"$OUT" && echo "no-cli ok"
+grep -q "Cursor CLI not found" <<<"$OUT" || fail no-cli; echo "no-cli ok"
 
 # 5. Malformed JSON -> non-zero, nothing installed
 mkdir -p "$T/bad/themes"; cp cursor/anvil-night/package.json "$T/bad/"; echo '{' > "$T/bad/themes/anvil-night-color-theme.json"
-if ANVIL_THEME_SRC="$T/bad" ANVIL_CURSOR_CLI=/usr/bin/true bash "$T/run.sh"; then echo "FAIL malformed"; exit 1; else echo "malformed ok"; fi
+if ANVIL_THEME_SRC="$T/bad" ANVIL_CURSOR_CLI=/usr/bin/true bash "$T/run.sh"; then fail malformed; else echo "malformed ok"; fi
 
 # 6. Installer failure -> non-zero
-if ANVIL_CURSOR_CLI=/usr/bin/false bash "$T/run.sh"; then echo "FAIL installer"; exit 1; else echo "installer-failure ok"; fi
+if ANVIL_CURSOR_CLI=/usr/bin/false bash "$T/run.sh"; then fail installer; else echo "installer-failure ok"; fi
 
 # 7. Missing Cursor.app -> rendered marker changes (so installing Cursor triggers a rerun)
-grep -q 'Reruns when Cursor appears: true' "$T/run.sh" && echo "app-marker ok"
+grep -q 'Reruns when Cursor appears: true' "$T/run.sh" || fail app-marker; echo "app-marker ok"
 # Expected: all seven "ok" lines
 ```
 
