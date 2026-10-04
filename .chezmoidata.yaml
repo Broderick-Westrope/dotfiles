@@ -21,9 +21,22 @@ brew:
     - walk
     - zoxide
     - zsh-autosuggestions
+    - jq
+    - lazydocker
+    - bottom
+    - docker-compose
+    - tmux
+    - rainfrog
+    - git
+    - glow
+    - duckdb
+    - go-gremlins/tap/gremlins
+    - ncdu
+    - pgcli
+    - broderick-westrope/tap/muninn
+    - ripgrep
   casks:
     - alt-tab
-    - arc
     - claude-code
     - font-fira-code-nerd-font
     - ghostty
@@ -32,103 +45,58 @@ brew:
     - obsidian
     - raycast
     - spotify
+    - rectangle
+    - cleanshot
+    - mitmproxy
+    - stats
+    - typora
+    - wispr-flow
+    - zed
+    - zen
+    - ant
+    - bitwarden
+    - bloom
+    - claude
+    - cursor
+    - cursor-cli
+    - displaylink
+    - karabiner-elements
+    - minecraft
   personal:
     formulae:
-      - amalgo
       - buf
-      - docker-compose
-      - gnupg
       - golangci-lint
       - grpc
-      - jq
-      - lazydocker
       - luarocks
       - pnpm
     casks:
-      - beekeeper-studio
-      - bruno
-      - cleanshot
-      - cryptomator
-      - discord
-      - firefox
-      - fuse-t
-      - fuse-t-sshfs
-      - gpg-suite
-      - hyperkey
-      - mimestream
       - orbstack
       - protonvpn
-      - qbittorrent
-      - rectangle
-      - tor-browser
-      - visual-studio-code
-      - vlc
-      - wireshark
   work:
     formulae:
-      - beads
-      - block-goose-cli
-      - bottom
       - cloud-sql-proxy
       - cocoapods
-      - countdown
       - dependabot
-      - duckdb
       - evans
       - exercism
       - fdupes
       - ffmpeg
-      - git
-      - glow
       - golang-migrate
-      - go-gremlins/tap/gremlins
       - helm
       - herdr
       - kubectx
       - kubernetes-cli
-      - broderick-westrope/tap/muninn
-      - ncdu
-      - nono
-      - opencode
-      - pgcli
-      - pi-coding-agent
       - postgresql@17
-      - rainfrog
       - sleepwatcher
       - sops
       - stripe-cli
       - hashicorp/tap/terraform
-      - tmux
       - universal-ctags
       - uv
     casks:
-      - ant
-      - bitwarden
-      - block-goose
-      - bloom
-      - claude
-      - coderabbit
-      - conductor
-      - cursor
-      - cursor-cli
-      - displaylink
       - docker-desktop
-      - ecamm-live
       - gcloud-cli
-      - handy
-      - karabiner-elements
       - linear
-      - meetily
-      - meld-studio
-      - minecraft
-      - mitmproxy
-      - postman
-      - stats
-      - tableplus
-      - typora
-      - wispr-flow
-      - zed
-      - zen
 
 system:
   is_macos: true
