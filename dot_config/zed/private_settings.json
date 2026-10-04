@@ -1,0 +1,77 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "git_panel": {
+    "fallback_branch_name": "main"
+  },
+  "git": {
+    "diff_base": "head"
+  },
+  "terminal": {
+    "font_size": 15.0
+  },
+  "buffer_line_height": "comfortable",
+  "buffer_font_weight": 400.0,
+  "buffer_font_family": "FiraCode Nerd Font Mono",
+  "agent": {
+    "sandbox_permissions": {
+      "allow_all_hosts": true
+    },
+    "favorite_models": [],
+    "model_parameters": [],
+    "tool_permissions": {
+      "tools": {
+        "terminal": {
+          "always_allow": [
+            {
+              "pattern": "^go\\s+test(\\s|$)"
+            },
+            {
+              "pattern": "^tail\\b"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Zed (Default)",
+    "dark": "Catppuccin Mocha"
+  },
+  "diff_view_style": "unified",
+  "disable_ai": false,
+  "cli_default_open_behavior": "existing_window",
+  "session": {
+    "trust_all_worktrees": true
+  },
+  "base_keymap": "Zed",
+  "agent_servers": {
+    "anvil": {
+      "type": "custom",
+      "command": "anvil"
+    },
+    "github-copilot-cli": {
+      "type": "registry"
+    },
+    "codex-acp": {
+      "type": "registry"
+    },
+    "claude-acp": {
+      "type": "registry"
+    }
+  },
+  "ui_font_size": 16,
+  "buffer_font_size": 15.0,
+  "theme": {
+    "mode": "dark",
+    "light": "Ayu Light",
+    "dark": "Anvil Night",
+  },
+}
