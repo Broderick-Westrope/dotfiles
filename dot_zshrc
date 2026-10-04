@@ -1,0 +1,126 @@
+# Pre-path env variables
+export MISE_DIR="$HOME/.local/share/mise"
+export GOBIN="$HOME/.local/bin"
+
+# Path
+export PATH="$MISE_DIR/shims:$PATH"
+export PATH="/opt/homebrew/opt/openssl/bin:$PATH"
+export PATH="$HOME/bin:$PATH"
+export PATH="/opt/homebrew/opt/libpq/bin:$PATH"
+export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
+export PATH="$HOME/.yoyo/bin:$PATH"
+export PATH="$HOME/.bun/bin:$PATH"
+export PATH="/Users/broderick.westrope/.local/bin:$PATH"
+export PATH="$GOBIN:$PATH"
+
+# Post-path env variables (default)
+export EDITOR="zed --wait"
+export HOMEBREW_CASK_OPTS="--appdir=~/Applications"
+export GIT_CONFIG_GLOBAL="$HOME/.config/git/config"
+
+# Keys live in 1Password; this file only holds op:// references.
+export OP_ENV_FILE="$HOME/.config/op-refs.env"
+withkeys() { op run --env-file "$OP_ENV_FILE" -- "$@"; }
+# The permission bouncer reads its key from the environment at startup.
+anvil() { TYPESAFE_API_KEY="$(op read op://Employee/typesafe/credential)" command anvil "$@"; }
+export ANVIL_PROFILE=1
+
+# Anthropic
+export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'
+export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-6'
+export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5'
+
+# Go
+export GOPATH="$MISE_DIR/shims"
+export GOPRIVATE=github.com/eucalyptusvc/*
+
+# Aliases
+alias cls="clear"
+alias lg="lazygit"
+alias ld="lazydocker"
+alias ez="eza -1 --icons=auto --color=auto"
+alias pn="pnpm"
+alias chz="chezmoi"
+alias cr="coderabbit"
+alias k9s="k9s --readonly"
+alias k9="k9s --readonly"
+alias zw="wtp cd"
+cwd() {
+  if [ -n "$1" ]; then
+    realpath "$1" | pbcopy
+  else
+    pwd | pbcopy
+  fi
+}
+alias clc="claude"
+alias ghd="gh dash"
+alias bc="brocode"
+alias cping="claude -p "hi" --model "haiku""
+alias typora="open -a typora"
+alias mu="muninn web"
+alias code="zed"
+
+function mkz() {
+    mkdir "$1"
+    z "$1"
+}
+
+function lk {
+    cd "$(walk "$@")" || exit
+}
+
+# Use arrows to navigate history and suggestions
+autoload -U up-line-or-beginning-search
+autoload -U down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey "^[[A" up-line-or-beginning-search   # Up
+bindkey "^[[B" down-line-or-beginning-search # Down
+source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=* l:|=*'
+
+# Completions (must run before anything that calls compdef)
+autoload -Uz compinit && compinit
+
+eval "$(starship init zsh)"
+eval "$(zoxide init zsh)"
+eval "$(mise activate zsh)"
+eval "$(wtp shell-init zsh)"
+
+# Completions
+source <(fzf --zsh)
+source <(mise completion zsh)
+# Added by Antigravity
+export PATH="/Users/broderick.westrope/.antigravity/antigravity/bin:$PATH"
+
+
+# Function to re-run the last X commands defined in a variable
+function rerun_last() {
+  local num_commands=${1:-2} # Default to 2 if no argument is provided
+  local history_offset=$((num_commands + 1))
+  local range_start=$(history -n -$history_offset | head -n 1 | awk '{print $1}')
+  local range_end=$(history -n -2 | head -n 1 | awk '{print $1}')
+
+  if [[ -z "$range_start" || -z "$range_end" ]]; then
+    echo "Could not find sufficient history."
+    return 1
+  fi
+
+  echo "Running commands $range_start to $range_end:"
+  # Execute the commands directly using 'fc -s'
+  fc -s "$range_start" "$range_end"
+}
+
+
+# bun completions
+[ -s "/Users/broderick.westrope/.bun/_bun" ] && source "/Users/broderick.westrope/.bun/_bun"
+
+# review a PR on a worktree
+revwt() {
+  local branch=$(gh pr view "$1" --json headRefName -q .headRefName)
+  git fetch origin "$branch"
+  if ! wtp add "$branch" --exec "$EDITOR ." 2>/dev/null; then
+    wtp exec "$branch" -- $EDITOR .
+  fi
+}
