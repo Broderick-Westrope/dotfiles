@@ -15,7 +15,6 @@ export PATH="$GOBIN:$PATH"
 
 # Post-path env variables (default)
 export EDITOR="zed --wait"
-export HOMEBREW_CASK_OPTS="--appdir=~/Applications"
 export HOMEBREW_BUNDLE_FILE_GLOBAL="$HOME/.config/homebrew/Brewfile"
 export GIT_CONFIG_GLOBAL="$HOME/.config/git/config"
 
