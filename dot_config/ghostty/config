@@ -56,3 +56,4 @@ macos-titlebar-style = tabs
 macos-window-buttons = hidden
 window-show-tab-bar = auto
 window-padding-x=10,0
+keybind = shift+enter=text:\x1b\r
