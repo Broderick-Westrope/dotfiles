@@ -1,0 +1,5 @@
+[user]
+	email = brodie.westrope@gmail.com
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEDMJZ9YMf1BENUAXoWlVt6E8SNUI1JVvBQO0Ya7T6Ah
+[url "git@github.com-personal:"]
+	insteadOf = https://github.com/

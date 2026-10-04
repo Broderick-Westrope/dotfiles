@@ -1,0 +1,11 @@
+#!/bin/sh
+# Don't add to merge commits, squash commits, or amends
+case "$2" in
+  merge|squash) exit 0 ;;
+esac
+# Don't add if already present
+TRAILER="Co-authored-by: Brodie Westrope <brodie.westrope@gmail.com>"
+grep -qF "$TRAILER" "$1" && exit 0
+# Append the trailer with a blank line separator
+echo "" >> "$1"
+echo "$TRAILER" >> "$1"

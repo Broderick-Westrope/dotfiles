@@ -1,0 +1,25 @@
+[core]
+	excludesfile = /Users/broderick.westrope/.config/git/ignore
+	hooksPath = /Users/broderick.westrope/.config/git/hooks
+[user]
+	email = broderick.westrope@eucalyptus.vc
+	name = Brodie Westrope
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID05NKbjTOvQXaKhJsMhPtv3R8HnpeHbFulD9+zZeFY0
+[coderabbit]
+	machineId = cli/4144b7bc75854bf1973bf613dd1333b8
+[gpg]
+	format = ssh
+[commit]
+	gpgsign = true
+[gpg "ssh"]
+	allowedSignersFile = /Users/broderick.westrope/.ssh/allowed_signers
+[includeIf "gitdir:~/dev/helse/"]
+	path = /Users/broderick.westrope/.gitconfig-helse
+# [url "git@github.com:eucalyptusvc/"]
+	# insteadOf = https://github.com/eucalyptusvc/
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
