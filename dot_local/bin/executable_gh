@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+#
+# Wrapper around the real gh that picks the GitHub account per project:
+# repos under ~/dev/helse use the personal account, everything else uses
+# the work account. It works by setting GH_TOKEN for a single invocation,
+# so the globally active account (gh auth switch) is never changed.
+#
+# Precedence:
+#   1. GH_TOKEN or GITHUB_TOKEN already set: passed through untouched.
+#   2. GH_ACCOUNT=<login>: explicit override.
+#   3. -R/--repo with a known owner.
+#   4. The main repository's location, resolved through the git common
+#      dir so linked worktrees outside ~/dev/helse (e.g. wtp) still count.
+#   5. Otherwise the work account.
+
+set -euo pipefail
+
+personal_account="Broderick-Westrope"
+work_account="brodie-euc"
+personal_root="$HOME/dev/helse"
+
+self_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+
+real_gh=""
+IFS=: read -ra path_entries <<<"$PATH"
+for dir in "${path_entries[@]}"; do
+	[[ -n "$dir" && -x "$dir/gh" && ! -d "$dir/gh" ]] || continue
+	if [[ "$(cd "$dir" 2>/dev/null && pwd -P)" != "$self_dir" ]]; then
+		real_gh="$dir/gh"
+		break
+	fi
+done
+if [[ -z "$real_gh" ]]; then
+	echo "gh wrapper: could not find the real gh on PATH" >&2
+	exit 127
+fi
+
+# Auth subcommands manage the stored accounts themselves; an injected
+# GH_TOKEN would mask them (gh auth status would only report the token).
+if [[ -n "${GH_TOKEN:-}${GITHUB_TOKEN:-}" || "${1:-}" == "auth" ]]; then
+	exec "$real_gh" "$@"
+fi
+
+account_for_owner() {
+	local owner
+	owner="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+	case "$owner" in
+	broderick-westrope) echo "$personal_account" ;;
+	eucalyptusvc) echo "$work_account" ;;
+	esac
+}
+
+repo_flag_owner() {
+	local value="" prev=""
+	for arg in "$@"; do
+		case "$prev" in
+		-R | --repo) value="$arg" ;;
+		esac
+		case "$arg" in
+		--repo=*) value="${arg#--repo=}" ;;
+		-R?*) value="${arg#-R}" ;;
+		esac
+		[[ "$arg" == "--" ]] && break
+		prev="$arg"
+	done
+	[[ -n "$value" ]] || return 0
+	value="${value#https://}"
+	value="${value#http://}"
+	value="${value%.git}"
+	# Accept OWNER/REPO and HOST/OWNER/REPO.
+	IFS=/ read -ra parts <<<"$value"
+	if ((${#parts[@]} >= 3)); then
+		echo "${parts[1]}"
+	elif ((${#parts[@]} == 2)); then
+		echo "${parts[0]}"
+	fi
+}
+
+account_for_location() {
+	local location
+	location="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || location="$PWD"
+	location="$(cd "$location" 2>/dev/null && pwd -P)" || location="$PWD"
+	local root
+	root="$(cd "$personal_root" 2>/dev/null && pwd -P)" || root="$personal_root"
+	case "$location/" in
+	"$root"/*) echo "$personal_account" ;;
+	*) echo "$work_account" ;;
+	esac
+}
+
+account="${GH_ACCOUNT:-}"
+if [[ -z "$account" ]]; then
+	owner="$(repo_flag_owner "$@")"
+	[[ -n "$owner" ]] && account="$(account_for_owner "$owner")"
+fi
+[[ -n "$account" ]] || account="$(account_for_location)"
+
+if token="$("$real_gh" auth token --user "$account" 2>/dev/null)" && [[ -n "$token" ]]; then
+	export GH_TOKEN="$token"
+else
+	echo "gh wrapper: no stored token for $account; using the active account" >&2
+fi
+
+exec "$real_gh" "$@"
