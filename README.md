@@ -120,4 +120,5 @@ chezmoi re-add "$HOME/Library/Application Support/Cursor/User/settings.json"
 - The Raycast export (`dot_config/raycast`) is from November 2024 and isn't applied. Replace it with a fresh export or delete it.
 - Casks installed before the switch to `/Applications` still live in `~/Applications` and upgrade in place there.
 - Cursor's per-item status bar visibility and the Cursor Tab toggle aren't settings-backed, so they're manual steps (see [Cursor](#cursor)).
+- Cursor's inline prompt (`cmd+k`) and the agent/chat sidebar (`cmd+i`, `cmd+l`) can't be removed with a setting. They stay hidden until you invoke them, and the agents title-bar button is turned off.
 - The Cursor theme can't reproduce everything from the Zed original. VS Code has no dim ANSI colours and no hollow diff hunks, and some Zed UI keys have no equivalent; the commit that added the theme lists each one.
