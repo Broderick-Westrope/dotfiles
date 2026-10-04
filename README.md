@@ -8,8 +8,6 @@ This repo contains the configuration to setup my machines using [Chezmoi](https:
 
 ```shell
 export GITHUB_USERNAME=Broderick-Westrope
-# Optional: Set your email for git configuration
-export GIT_EMAIL=your-email@example.com
 
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --source ~/dev/helse/dotfiles --apply $GITHUB_USERNAME
 ```
