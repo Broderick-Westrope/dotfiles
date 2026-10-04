@@ -27,15 +27,21 @@ fi
 
 echo "🎨 Installing the Anvil Night theme into Cursor..."
 
+if ! /usr/bin/xcode-select -p >/dev/null 2>&1; then
+    echo "❌ Xcode Command Line Tools are missing (needed for /usr/bin/python3); run: xcode-select --install" >&2
+    exit 1
+fi
+
 /usr/bin/python3 -c 'import json,sys; [json.load(open(p)) for p in sys.argv[1:]]' \
     "$SRC/package.json" "$SRC/themes/anvil-night-color-theme.json"
 
 field() {
     /usr/bin/python3 -c 'import json,sys
+from xml.sax.saxutils import escape
 v = json.load(open(sys.argv[1]))
 for k in sys.argv[2].split("."):
     v = v[k]
-print(v)' "$SRC/package.json" "$1"
+print(escape(str(v), {"\"": "&quot;"}))' "$SRC/package.json" "$1"
 }
 NAME=$(field name)
 PUBLISHER=$(field publisher)
