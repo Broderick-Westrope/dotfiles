@@ -1,0 +1,46 @@
+#!/bin/bash
+# Keeps the Go build cache under a size cap. Go has no size limit and only
+# evicts entries unused for five days, so heavy build churn (many worktrees,
+# mutation testing) can fill the disk well inside that window.
+#
+# Once the cache passes GO_CACHE_CAP_GIB, this deletes the least recently
+# used entries until it is down to GO_CACHE_TARGET_GIB. Go refreshes an
+# entry's mtime when it uses it and treats a missing entry as a cache miss,
+# so deleting by oldest mtime is a safe LRU, even while builds are running.
+set -euo pipefail
+
+cache="${GO_CACHE_DIR:-$HOME/Library/Caches/go-build}"
+cap_gib="${GO_CACHE_CAP_GIB:-40}"
+target_gib="${GO_CACHE_TARGET_GIB:-30}"
+
+if [ "$target_gib" -ge "$cap_gib" ]; then
+    echo "GO_CACHE_TARGET_GIB ($target_gib) must be below GO_CACHE_CAP_GIB ($cap_gib)." >&2
+    exit 1
+fi
+[ -d "$cache" ] || exit 0
+
+work="$(mktemp -d "${TMPDIR:-/tmp}/go-cache-cap.XXXXXX")"
+trap 'rm -rf "$work"' EXIT
+
+# Entries are <2 hex>/<hash>-a (action) and <2 hex>/<hash>-d (output). Go
+# may delete some while this runs, so stat errors are expected.
+find "$cache" -mindepth 2 -maxdepth 2 -type f -name '*-[ad]' \
+    -exec stat -f '%m %z %N' {} + 2>/dev/null | sort -n >"$work/entries" || true
+
+gib=1073741824
+total=$(awk '{ s += $2 } END { printf "%.0f", s }' "$work/entries")
+if [ "$total" -le $((cap_gib * gib)) ]; then
+    exit 0
+fi
+
+excess=$((total - target_gib * gib))
+awk -v excess="$excess" '
+    freed >= excess { exit }
+    { freed += $2; sub(/^[0-9]+ [0-9]+ /, ""); print }
+' "$work/entries" >"$work/victims"
+tr '\n' '\0' <"$work/victims" | xargs -0 rm -f
+
+removed=$(wc -l <"$work/victims" | tr -d ' ')
+awk -v t="$total" -v e="$excess" -v n="$removed" -v d="$(date '+%Y-%m-%d %H:%M:%S')" -v g="$gib" '
+    BEGIN { printf "%s Trimmed Go build cache from %.1f GiB to about %.1f GiB (%d files).\n", d, t / g, (t - e) / g, n }
+'

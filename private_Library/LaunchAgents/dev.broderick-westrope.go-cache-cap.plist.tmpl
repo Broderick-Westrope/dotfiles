@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>dev.broderick-westrope.go-cache-cap</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>{{ .chezmoi.homeDir }}/.local/bin/go-cache-cap</string>
+	</array>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>GO_CACHE_DIR</key>
+		<string>{{ .chezmoi.homeDir }}/Library/Caches/go-build</string>
+		<key>GO_CACHE_CAP_GIB</key>
+		<string>40</string>
+		<key>GO_CACHE_TARGET_GIB</key>
+		<string>30</string>
+	</dict>
+	<key>StartInterval</key>
+	<integer>1800</integer>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>LowPriorityIO</key>
+	<true/>
+	<key>Nice</key>
+	<integer>10</integer>
+	<key>StandardOutPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/go-cache-cap.log</string>
+	<key>StandardErrorPath</key>
+	<string>{{ .chezmoi.homeDir }}/Library/Logs/go-cache-cap.log</string>
+</dict>
+</plist>

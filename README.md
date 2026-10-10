@@ -112,6 +112,7 @@ chezmoi re-add "$HOME/Library/Application Support/Cursor/User/settings.json"
 - **Development**: mise for tool management, lazygit, lazydocker, nvim (LazyVim), Zed, Cursor (settings and the Anvil Night theme)
 - **Git and GitHub**: per-directory identities, SSH commit signing, the `gh` account wrapper
 - **Agents**: Anvil config, including permission rules
+- **Go build cache cap**: a launchd agent runs `~/.local/bin/go-cache-cap` every 30 minutes. It deletes the least recently used entries once the cache passes 40 GiB, until it's back down to 30 GiB, because Go only evicts entries unused for five days and has no size limit. Trims are logged to `~/Library/Logs/go-cache-cap.log`. `run_onchange_after_load-go-cache-cap.sh.tmpl` reloads the agent whenever the plist or script changes.
 - **Terminal**: Ghostty with custom configuration
 
 ## Known gaps

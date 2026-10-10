@@ -1,0 +1,18 @@
+#!/bin/bash
+# Reloads the Go build cache cap agent whenever its plist or script changes:
+# {{ include "private_Library/LaunchAgents/dev.broderick-westrope.go-cache-cap.plist.tmpl" | sha256sum }}
+# {{ include "dot_local/bin/executable_go-cache-cap" | sha256sum }}
+
+{{- if .system.is_macos }}
+
+set -euo pipefail
+
+label="dev.broderick-westrope.go-cache-cap"
+plist="$HOME/Library/LaunchAgents/$label.plist"
+domain="gui/$(id -u)"
+
+launchctl bootout "$domain/$label" 2>/dev/null || true
+launchctl bootstrap "$domain" "$plist"
+echo "✅ Loaded $label"
+
+{{- end }}
